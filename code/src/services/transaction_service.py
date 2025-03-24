@@ -96,19 +96,19 @@ def get_recommended_transaction_by_date(date_str: str):
     # Construct a JSON instruction for the LLM
     system_instructions = (
         "You are a Wells Fargo product recommendation system. "
-        "Given a list of transactions, pick one transaction (transaction_id) "
+        "Given a list of transactions, pick transactions (transaction_id) "
         "for which a Wells Fargo product can be recommended. "
-        "Output a JSON object with the format:\n"
-        "{\n"
+        "Output a list of JSON objects with the format:\n"
+        "[ {\n"
         '  "transaction_id": "<the chosen transaction id>",\n'
         '  "category": "<the chosen transaction category>",\n'
         '  "description": "<the chosen transaction description>",\n'
         '  "type": "<the chosen transaction type>",\n'
         '  "reason": "<short reason why this product suits the transaction>"\n'
-        "}"
+        "} ]"
     )
 
-    user_message = f"Transactions:\n{prompt_context}\nWhich transaction do you pick?"
+    user_message = f"Transactions:\n{prompt_context}\nWhich transactions do you pick?"
 
     # Get the configured openai client
     openai_client = get_openai_client()
@@ -135,14 +135,5 @@ def get_recommended_transaction_by_date(date_str: str):
     except json.JSONDecodeError:
         return {"error": "Failed to parse LLM response as JSON.", "raw_response": completion_text}
 
-    # llm_json should contain 'transaction_id', and 'reason'.
-    chosen_tx_id = llm_json.get("transaction_id")
-
     # Return the parsed response
-    return {
-        "transaction_id": chosen_tx_id,
-        "category": llm_json.get("category"),
-        "description": llm_json.get("description"),
-        "type": llm_json.get("type"),
-        "reason": llm_json.get("reason")
-    }
+    return llm_json
