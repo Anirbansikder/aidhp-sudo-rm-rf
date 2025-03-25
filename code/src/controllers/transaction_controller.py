@@ -34,7 +34,7 @@ def analyze_transactions_by_date():
     POST /api/transactions/analyze/by_date
     Body: { "date": "MM/DD/YYYY" }
     1) Fetch unprocessed transactions for that date
-    2) Use LLM to pick ONE transaction for recommendation
+    2) Use LLM to pick transactions for recommendation
     3) Return JSON with chosen transaction_id, and reason
     """
     data = request.get_json() or {}
