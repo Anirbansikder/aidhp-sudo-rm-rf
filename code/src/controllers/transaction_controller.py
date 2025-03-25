@@ -70,11 +70,14 @@ def analyze_recommendable_transactions():
 @transaction_bp.route('/analyze_customer_product', methods=['GET'])
 def analyze_recommendable_transactions_for_customer():
     customer_str = request.args.get("customer_id")
-    if not customer_str:
-        return jsonify({"error": "Date query parameter is required"}), 400
+    start_date = request.args.get("start_date")
+    end_date = request.args.get("end_date")
+
+    if not customer_str or not start_date or not end_date:
+        return jsonify({"error": "Query parameters are required"}), 400
 
     logger.info(f"Analyzing products for customer: {customer_str}")
-    result = analyze_recommendable_products_for_customer(customer_str)
+    result = analyze_recommendable_products_for_customer(customer_str, start_date, end_date)
 
     # If there's an error key, handle that
     if "error" in result:

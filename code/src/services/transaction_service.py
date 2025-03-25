@@ -229,7 +229,7 @@ def analyze_recommendable_transaction_by_date(date_str: str):
 
     return valid_transactions
 
-def analyze_recommendable_products_for_customer(customer_id: str):
+def analyze_recommendable_products_for_customer(customer_id: str, start_date: str, end_date: str):
     db = get_database()
     transactions_coll = db["transactions"]
     customers_coll = db["customers"]
@@ -244,9 +244,14 @@ def analyze_recommendable_products_for_customer(customer_id: str):
     if not segment_id:
         return {"error": "Segment ID not found for customer"}
 
-    two_weeks_ago = datetime(2025,2,15) - timedelta(weeks=2) # Hard coded
+    try:
+        start_date = datetime.strptime(start_date, "%m/%d/%Y")
+        end_date = datetime.strptime(end_date, "%m/%d/%Y")
+    except ValueError:
+        return {"error": "Invalid date format. Use MM/DD/YYYY."}
+
     valid_transactions = transactions_coll.find({
-        "transaction_date": {"$gte": two_weeks_ago},  # Filter for last 2 weeks
+        "transaction_date": {"$gte": start_date, "$lte": end_date},
         "customer_id": customer_id,
         "is_processed_for_recommendation": True      # Only processed transactions
     })
@@ -308,14 +313,14 @@ def analyze_recommendable_products_for_customer(customer_id: str):
         "Segment-Based Eligibility: Only recommend products that belong to the customer's designated segment."
         "Customer Interest: Take into account any explicit product interests the customer has shown in past interactions, applications, or inquiries."
         "Priority Ranking: Assign a priority to each recommended product based on how well it matches the transaction. A lower number indicates a higher priority (1 = best match)."
-        "Here are the **customer interests**" + "\n" + customer_interests + "\n"
+        "\n\n Here are the **customer interests**" + "\n" + customer_interests + "\n"
         "Here are the **eligible financial products**" + "\n" + pd_prompt_context + "\n"
         "Output a object containing a list of valid transactions strictly maintaining below format:\n"
         "{\"valid_products\": [\n"
         "    {\n"
         "      \"product_id\": \"<valid product id>\",\n"
         "      \"product_name\": \"<valid product name>\",\n"
-        "      \"reason\": \"<brief reason why this product is suitable for customer>\"\n"
+        "      \"reason\": \"<descriptive reason why this product is suitable for customer based on transactions>\"\n"
         "      \"priority\": \"<Recommendation priority (1 = highest, increasing number = lower priority)>\"\n"
         "    }\n"
         "  ]\n"
