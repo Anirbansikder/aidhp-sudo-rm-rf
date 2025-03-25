@@ -2,3 +2,4 @@ pymongo
 python-dotenv
 pydantic
 flask
+openai

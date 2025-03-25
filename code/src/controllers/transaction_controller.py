@@ -6,7 +6,9 @@ import logging
 # Assume these are in the same package or an importable package
 from services.transaction_service import (
     fetch_transactions_by_date,
-    get_recommended_transaction_by_date
+    get_recommended_transaction_by_date,
+    analyze_recommendable_transaction_by_date,
+    analyze_recommendable_products_for_customer
 )
 
 transaction_bp = Blueprint('transaction_bp', __name__)
@@ -48,3 +50,34 @@ def analyze_transactions_by_date():
         return jsonify(result), 500
 
     return jsonify(result), 200
+
+@transaction_bp.route('/analyze_recommendable_transactions/by_date', methods=['POST'])
+def analyze_recommendable_transactions():
+    data = request.get_json() or {}
+    date_str = data.get("date")
+    if not date_str:
+        return jsonify({"error": "Date query parameter is required"}), 400
+
+    logger.info(f"Analyzing transactions for date: {date_str}")
+    result = analyze_recommendable_transaction_by_date(date_str)
+
+    # If there's an error key, handle that
+    if "error" in result:
+        return jsonify(result), 500
+
+    return jsonify({"result" : result}), 200
+
+@transaction_bp.route('/analyze_customer_product', methods=['GET'])
+def analyze_recommendable_transactions_for_customer():
+    customer_str = request.args.get("customer_id")
+    if not customer_str:
+        return jsonify({"error": "Date query parameter is required"}), 400
+
+    logger.info(f"Analyzing products for customer: {customer_str}")
+    result = analyze_recommendable_products_for_customer(customer_str)
+
+    # If there's an error key, handle that
+    if "error" in result:
+        return jsonify(result), 500
+
+    return jsonify({"result" : result}), 200
